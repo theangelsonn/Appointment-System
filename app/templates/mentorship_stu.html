@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>NCUIM指導教授管理預約系統</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Raleway:wght@600;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="{{ url_for('static', filename='lib/lightbox/css/lightbox.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navbar start -->
+    <div class="container-fluid fixed-top">
+        <div class="container px-0">
+            <nav class="navbar navbar-light bg-white navbar-expand-xl">
+                <a href="index.html" class="navbar-brand">
+                    <h1 class="text-primary display-6">指導教授管理預約系統</h1>
+                </a>
+                <button class="navbar-toggler py-2 px-3" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarCollapse">
+                    <span class="fa fa-bars text-primary"></span>
+                </button>
+                <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
+                    <div class="navbar-nav mx-auto">
+                        <a href="{{ url_for('main.student_dashboard') }}" class="nav-item nav-link">研究室資訊</a>
+                        <a href="{{ url_for('main.appointment_student') }}" class="nav-item nav-link">預約紀錄</a>
+                        <a href="{{ url_for('main.mentorship_stu') }}" class="nav-item nav-link">指導邀請</a>
+                        <a href="{{ url_for('main.mentorship_stu_detail') }}" class="nav-item nav-link">指導邀請紀錄</a>
+                    </div>
+                    <div class="d-flex m-3 me-0">
+                        <a href="{{ url_for('main.profile_stu') }}" class="my-auto" title="帳號管理">
+                            <i class="fas fa-user fa-2x"></i>
+                        </a>
+                        <a href="{{ url_for('main.logout') }}" class="btn btn-danger ms-3">登出</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <!-- Navbar End -->
+
+    <!-- Content Start -->
+    <div class="container-fluid py-5">
+        <!-- 顏色區塊 Start -->
+        <div style="background-color: #82c408; height: 100px; width: 100%;"></div>
+        <!-- 顏色區塊 End -->
+        <div class="container py-5">
+            <h1 class="text-center mb-5">新增指導邀請</h1>
+            <form id="invitation-form">
+                <div class="mb-4">
+                    <label for="professor" class="form-label">選擇指導教授：</label>
+                    <select id="professor" name="professor" class="form-select">
+                        {% for professor in professors %}
+                        <option value="{{ professor }}">{{ professor }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="text-center">
+                    <button type="button" class="btn btn-primary" id="submit-invitation" 
+                        style="color: white;">提交邀請</button>
+                </div>
+                <div class="text-danger text-center mt-3" id="error-message" style="display: none;"></div>
+                <div class="text-success text-center mt-3" id="success-message" style="display: none;"></div>
+            </form>
+
+            <!-- 查看指導邀請紀錄 -->
+            <div class="mt-5">
+                <table class="table table-bordered text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>教授姓名</th>
+                            <th>邀請狀態</th>
+                            <th>送出時間</th>
+                            <th>審核時間</th>
+                        </tr>
+                    </thead>
+                    <tbody id="record-table">
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ record.professorName }}</td>
+                            <td>
+                                {% if record.status == '同意邀請' %}
+                                <span class="badge bg-success">{{ record.status }}</span>
+                                {% elif record.status == '拒絕邀請' %}
+                                <span class="badge bg-danger">{{ record.status }}</span>
+                                {% else %}
+                                <span class="badge bg-warning">{{ record.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ record.submissionTime }}</td>
+                            <td>{{ record.reviewTime }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Content End -->
+
+    <!-- Footer -->
+    <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
+        <div class="container py-5">
+            <div class="row g-4">
+                <!-- 左邊區塊：中央大學的Google地圖 -->
+                <div class="col-lg-2">
+                </div>
+                <div class="col-lg-4">
+                    <div class="card border-0">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d14467.76001603884!2d121.1952988!3d24.9681558!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346823c1ec904dcb%3A0xcdc129d4455ce456!2z5ZyL56uL5Lit5aSu5aSn5a24!5e0!3m2!1szh-TW!2stw!4v1733202944088!5m2!1szh-TW!2stw"
+                            width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+                <!-- 右邊區塊：中央資管的資訊 -->
+                <div class="col-lg-6">
+                    <div class="card border-0 bg-dark">
+                        <div class="card-body">
+                            <h4 class="text-light mb-3">中央大學資訊管理系</h4>
+                            <ul class="list-unstyled text-white">
+                                <li class="mb-2">
+                                    <a href="https://im.mgt.ncu.edu.tw/" class="text-white" target="_blank">
+                                        <i class="fas fa-link me-2"></i>中央大學資訊管理系系網連結
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-map-marker-alt me-2"></i>地址：桃園市中壢區中大路300號 管理二213室
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-phone-alt me-2"></i>系辦電話：(03)422-7151 分機 66500, 66501, 66536, 66559
+                                </li>
+                                <li>
+                                    <i class="fas fa-envelope me-2"></i>公務信箱: <a href="mailto:ncu6500@ncu.edu.tw"
+                                        class="text-white">ncu6500@ncu.edu.tw</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <!-- JavaScript Libraries -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='lib/easing/easing.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/waypoints/waypoints.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/lightbox/js/lightbox.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/owlcarousel/owl.carousel.min.js') }}"></script>
+
+    <!-- Template Javascript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <script>
+        document.getElementById('submit-invitation').addEventListener('click', function () {
+            const professorName = document.getElementById('professor').value;
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            const recordTable = document.getElementById('record-table');
+
+            const isConfirmed = confirm(`您確定要向 ${professorName} 發送邀請嗎？`);
+
+            if (!isConfirmed) {
+                return;
+            }
+            fetch('{{ url_for("main.submit_invitation") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'professor': professorName
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        errorMessage.style.display = 'block';
+                        errorMessage.textContent = data.error;
+                        successMessage.style.display = 'none';
+                    } else {
+                        successMessage.style.display = 'block';
+                        successMessage.textContent = data.success;
+                        errorMessage.style.display = 'none';
+
+                        // 更新表格
+                        const newRow = document.createElement('tr');
+                        newRow.innerHTML = `
+                        <td>${data.professor_name}</td>
+                        <td>${data.status}</td>
+                        <td>${data.request_date}</td>
+                        <td>${data.approval_date}</td>
+                    `;
+                        recordTable.appendChild(newRow);
+                    }
+                })
+                .catch(error => {
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = '提交失敗，請稍後再試。';
+                    successMessage.style.display = 'none';
+                });
+        });
+    </script>
+</body>
+
+</html>

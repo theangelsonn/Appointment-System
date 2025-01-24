@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <title>NCUIM指導教授管理預約系統</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="" name="keywords">
+        <meta content="" name="description">
+
+        <!-- Google Web Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Raleway:wght@600;800&display=swap" rel="stylesheet"> 
+
+        <!-- Icon Font Stylesheet -->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+        <!-- Libraries Stylesheet -->
+        <link href="{{ url_for('static', filename='lib/lightbox/css/lightbox.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
+
+        <!-- Customized Bootstrap Stylesheet -->
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
+        <!-- Template Stylesheet -->
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    </head>
+
+    <body>
+
+        <!-- Spinner Start -->
+        <div id="spinner" class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50  d-flex align-items-center justify-content-center">
+            <div class="spinner-grow text-primary" role="status"></div>
+        </div>
+        <!-- Spinner End -->
+
+
+        <!-- Navbar start -->
+        <div class="container-fluid fixed-top">
+            <div class="container px-0">
+                <nav class="navbar navbar-light bg-white navbar-expand-xl">
+                    <a href="index" class="navbar-brand"><h1 class="text-primary display-6">指導教授管理預約系統</h1></a>
+                    <button class="navbar-toggler py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                        <span class="fa fa-bars text-primary"></span>
+                    </button>
+                    <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
+                        <div class="navbar-nav mx-auto">
+                            <a href="{{ url_for('main.student_dashboard') }}" class="nav-item nav-link">研究室資訊</a>
+                            <a href="{{ url_for('main.appointment_student') }}" class="nav-item nav-link">預約紀錄</a>
+                            <a href="{{ url_for('main.mentorship_stu') }}" class="nav-item nav-link">指導邀請</a>
+                            <a href="{{ url_for('main.mentorship_stu_detail') }}" class="nav-item nav-link">指導邀請紀錄</a>
+                        </div>
+                        <div class="d-flex m-3 me-0">
+                            <a href="{{ url_for('main.profile_stu') }}" class="my-auto" title="帳號管理">
+                                <i class="fas fa-user fa-2x"></i>
+                            </a>
+	                        <a href="{{ url_for('main.logout') }}" class="btn btn-danger ms-3">登出</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <!-- Navbar End -->
+
+
+
+        <!-- Modal Search Start -->
+        <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content rounded-0">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Search by keyword</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body d-flex align-items-center">
+                        <div class="input-group w-75 mx-auto d-flex">
+                            <input type="search" class="form-control p-3" placeholder="keywords" aria-describedby="search-icon-1">
+                            <span id="search-icon-1" class="input-group-text p-3"><i class="fa fa-search"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Search End -->
+
+        <!-- Single Product Start -->
+        <div class="container-fluid py-0">
+            <!-- 顏色區塊 Start -->
+            <div style="background-color: #82c408; height: 150px; width: 100%;"></div>
+            <!-- 顏色區塊 End -->
+            <div class="container py-5">
+                <div class="row g-4 mb-5 justify-content-center">
+                    <div class="col-lg-8 col-xl-9">
+                        <div class="row g-4">
+                            <div class="col-lg-6">
+                                <div class="border rounded">
+                                    <img src="{{ url_for('static', filename='img/' ~ professor[7]) }}" class="img-fluid rounded" alt="Image">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <h4 class="fw-bold mb-3">{{ professor[2] }}</h4>
+                                <p class="mb-3">{{ professor[6] }}</p>
+                                <!-- <p class="mb-4">專長：{{ otherinfo[4] }}</p> -->
+                                <p class="mb-4"> email：{{ professor[3] }}</p>
+                                <p class="mb-4"> phone：{{ professor[4] }}</p>
+                                <p class="mb-4"> department：{{ professor[5] }}</p>
+                                <p class="mb-4"> 辦公室：{{ otherinfo[3] }}</p>
+                                <p class="mb-4"> 預計收{{ otherinfo[8] }}名學生，目前已收{{student_count}}名學生</p>
+                                <a href="{{ url_for('main.appointment_create', professor_id=professor[0]) }}" class="btn border border-secondary rounded-pill px-4 py-2 mb-4 text-primary {% if otherinfo[7] == 1 or student_count == otherinfo[8] %}disabled{% endif %}">
+                                    <i class="fa fa-shopping-bag me-2 text-primary"></i> 預約面談
+                                </a>
+                                <a href="{{ url_for('main.mentorship_stu') }}" class="btn border border-secondary rounded-pill px-4 py-2 mb-4 text-primary">
+                                    <i class="fa fa-shopping-bag me-2 text-primary"></i> 指導邀請
+                                </a>
+                            </div>
+                            <div class="col-lg-12">
+                                <nav>
+                                    <div class="nav nav-tabs mb-3">
+                                        <button class="nav-link active border-white border-bottom-0" type="button" role="tab"
+                                            id="reservation_time_tab" data-bs-toggle="tab" data-bs-target="#reservation_time"
+                                            aria-controls="reservation_time" aria-selected="true">可預約時段</button>
+                                        <button class="nav-link border-white border-bottom-0" type="button" role="tab"
+                                            id="notice_tab" data-bs-toggle="tab" data-bs-target="#notice"
+                                            aria-controls="notice" aria-selected="false">面談注意事項</button>
+                                        <button class="nav-link border-white border-bottom-0" type="button" role="tab"
+                                            id="lab_rule_tab" data-bs-toggle="tab" data-bs-target="#lab_rule"
+                                            aria-controls="lab_rule" aria-selected="false">實驗室規則</button>
+                                        <button class="nav-link border-white border-bottom-0" type="button" role="tab"
+                                            id="research_area_tab" data-bs-toggle="tab" data-bs-target="#research_area"
+                                            aria-controls="research_area" aria-selected="false">研究領域</button>
+                                    </div>
+                                </nav>
+                                <div class="tab-content mb-5">
+                                    <div class="tab-pane active" id="reservation_time" role="tabpanel" aria-labelledby="reservation_time_tab">
+                                        <p>{{ appointmentslot[2] }} </p>
+                                    </div>
+                                    <div class="tab-pane" id="notice" role="tabpanel" aria-labelledby="notice_tab">
+                                        <p>{{ otherinfo[6] }}</p>
+                                    </div>
+                                    <div class="tab-pane" id="lab_rule" role="tabpanel" aria-labelledby="lab_rule_tab">
+                                        <p>{{ otherinfo[5] }}</p>
+                                    </div>
+                                    <div class="tab-pane" id="research_area" role="tabpanel" aria-labelledby="research_area_tab">
+                                        <p>{{ otherinfo[4] }}</p>
+                                    </div>
+                                    <div class="tab-pane" id="nav-vision" role="tabpanel">
+                                        <p class="text-dark">Tempor erat elitr rebum at clita. Diam dolor diam ipsum et tempor sit. Aliqu diam
+                                            amet diam et eos labore. 3</p>
+                                        <p class="mb-0">Diam dolor diam ipsum et tempor sit. Aliqu diam amet diam et eos labore.
+                                            Clita erat ipsum et lorem et sit</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+        <!-- Single Product End -->
+    
+
+                <!-- Footer Start -->
+        <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
+            <div class="container py-5">
+                <div class="row g-4">
+                    <!-- 左邊區塊：中央大學的Google地圖 -->
+                    <div class="col-lg-2">
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card border-0">
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d14467.76001603884!2d121.1952988!3d24.9681558!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346823c1ec904dcb%3A0xcdc129d4455ce456!2z5ZyL56uL5Lit5aSu5aSn5a24!5e0!3m2!1szh-TW!2stw!4v1733202944088!5m2!1szh-TW!2stw" width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        
+                        </div>
+                    </div>
+                    <!-- 右邊區塊：中央資管的資訊 -->
+                    <div class="col-lg-6">
+                        <div class="card border-0 bg-dark">
+                            <div class="card-body">
+                                <h4 class="text-light mb-3">中央大學資訊管理系</h4>
+                                <ul class="list-unstyled text-white">
+                                    <li class="mb-2">
+                                        <a href="https://im.mgt.ncu.edu.tw/" class="text-white" target="_blank">
+                                            <i class="fas fa-link me-2"></i>中央大學資訊管理系系網連結
+                                        </a>
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-map-marker-alt me-2"></i>地址：桃園市中壢區中大路300號 管理二館213室
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-phone-alt me-2"></i>系辦電話：(03)422-7151 分機 66500, 66501, 66536, 66559
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-envelope me-2"></i>公務信箱: <a href="mailto:ncu6500@ncu.edu.tw" class="text-white">ncu6500@ncu.edu.tw</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End -->
+
+        <!-- Copyright Start -->
+        <div class="container-fluid copyright bg-dark py-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                        <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Your Site Name</a>, All right reserved.</span>
+                    </div>
+                    <div class="col-md-6 my-auto text-center text-md-end text-white">
+                        Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Copyright End -->
+
+
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-primary border-3 border-primary rounded-circle back-to-top"><i class="fa fa-arrow-up"></i></a>   
+
+        
+    <!-- JavaScript Libraries -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='lib/easing/easing.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/waypoints/waypoints.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/lightbox/js/lightbox.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/owlcarousel/owl.carousel.min.js') }}"></script>
+
+    <!-- Template Javascript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    </body>
+
+</html>

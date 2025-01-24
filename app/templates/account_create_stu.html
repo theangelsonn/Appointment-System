@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <title>NCUIM指導教授管理預約系統</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="" name="keywords">
+        <meta content="" name="description">
+
+        <!-- Google Web Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Raleway:wght@600;800&display=swap" rel="stylesheet"> 
+
+        <!-- Icon Font Stylesheet -->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+        <!-- Libraries Stylesheet -->
+        <link href="{{ url_for('static', filename='lib/lightbox/css/lightbox.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
+
+        <!-- Customized Bootstrap Stylesheet -->
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
+        <!-- Template Stylesheet -->
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    </head>
+    <body>
+        <!-- Navbar start -->
+        <div class="container-fluid fixed-top">
+            <div class="container px-0">
+                <nav class="navbar navbar-light bg-white navbar-expand-xl">
+                    <a href="index" class="navbar-brand"><h1 class="text-primary display-6">指導教授管理預約系統</h1></a>
+                    <button class="navbar-toggler py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                        <span class="fa fa-bars text-primary"></span>
+                    </button>
+                    <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
+                        <div class="navbar-nav mx-auto">
+                            <div class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">新增帳號</a>
+                                <div class="dropdown-menu m-0 bg-secondary rounded-0">
+                                    <a href="account_create_stu" class="dropdown-item">新增研究生帳號</a>
+                                    <a href="account_create_pro" class="dropdown-item">新增指導教授帳號</a>
+                                </div>
+                            </div>
+                            <div class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">管理帳號</a>
+                                <div class="dropdown-menu m-0 bg-secondary rounded-0">
+                                    <a href="account_stu" class="dropdown-item">研究生帳號</a>
+                                    <a href="account_pro" class="dropdown-item">指導教授帳號</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex m-3 me-0">
+                            <a href="#" class="my-auto" title="帳號管理">
+                                <i class="fas fa-user fa-2x"></i>
+                            </a>
+                            <a href="{{ url_for('main.logout') }}" class="btn btn-danger ms-3">登出</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <!-- Navbar End -->
+
+        <!-- Contact Start -->
+        <div class="container-fluid contact py-5">
+            <!-- 顏色區塊 Start -->
+            <div style="background-color: #82c408; height: 100px; width: 100%;"></div>
+            <!-- 顏色區塊 End -->
+            <div class="container py-5" style="max-width: 80%;">
+                <div class="p-5 bg-light rounded">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="text-center mx-auto" style="max-width: 700px;">
+                                <h1 class="text-primary">新增研究生帳號</h1>
+                            </div>
+                        </div>
+                       
+                        <div class="container-fluid py-3">
+                            <div class="container py-0">
+                                <div class="row justify-content-center align-items-center">
+                                                                        <!-- Form -->
+                                    <div class="col-lg-8">
+                                        <form  action="{{ url_for('main.account_create_stu') }}" method="POST" onsubmit="return confirmDelete();">
+                                            <div class="row mb-4">
+                                                <div class="col-md-6">
+                                                    <label for="student-name" class="form-label">研究生姓名</label>
+                                                    <input type="text" id="student-name" name="student-name" class="w-100 form-control border-0 py-3" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="account-email" class="form-label">帳號</label>
+                                                    <input type="email" id="account-email" name="account-email" class="w-100 form-control border-0 py-3" required>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-4">
+                                                <div class="col-md-6">
+                                                    <label for="rankType" class="form-label">入學方式</label>
+                                                    <select id="rankType" name="rankType" class="w-100 form-control border-0 py-3" required>
+                                                        <option value="" disabled selected>請選擇</option>
+                                                        <option value="推甄-正取">推甄-正取</option>
+                                                        <option value="推甄-備取">推甄-備取</option>
+                                                        <option value="考試-正取">考試-正取</option>
+                                                        <option value="考試-備取">考試-備取</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="rank" class="form-label">排名</label>
+                                                    <input type="number" id="rank" name="rank" class="w-100 form-control border-0 py-3"  min="1" required>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-4">
+                                                <div class="col-md-6">
+                                                    <label for="department" class="form-label">就讀系所</label>
+                                                    <select id="department" name="department" class="w-100 form-control border-0 py-3" required>
+                                                        <option value="" disabled selected>請選擇</option>
+                                                        <option value="資訊管理學系">資訊管理學系</option>
+                                                        <option value="企業管理學系">企業管理學系</option>
+                                                        <option value="財務金融學系">財務金融學系</option>
+                                                        <option value="經濟學系">經濟學系</option>
+                                                        <option value="會計研究所">會計研究所</option>
+                                                        <option value="產業經濟研究所">產業經濟研究所</option>
+                                                        <option value="人力資源管理研究所">人力資源管理研究所</option>
+                                                        <option value="工業管理研究所">工業管理研究所</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="admission-year" class="form-label">入學年度</label>
+                                                    <input type="text" id="admissionYear" name="admissionYear" class="w-100 form-control border-0 py-3" required>
+                                                </div>
+                                            </div>
+                                            <div class="text-center">
+                                                <button id="submit-button" class="btn" style="background-color: #82c408; color: white; width: auto; padding: 10px 20px;" type="submit">新增</button>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <script>
+                                        async function confirmDelete() {
+                                            // 获取用户输入的值
+                                            const name = document.getElementById('student-name').value;
+                                            const regex = /\d/;
+                                    
+                                            // 检查姓名是否包含数字
+                                            if (regex.test(name)) {
+                                                alert('姓名不能包含數字');
+                                                return false;
+                                            }
+                                    
+                                            // 获取 rankType 和 rank 的值
+                                            const rankType = document.getElementById("rankType").value;
+                                            const rank = document.getElementById("rank").value;
+                                            const account = document.getElementById("account-email").value;
+                                            try {
+                                                const account_response = await fetch('{{ url_for("main.check_account") }}', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                    },
+                                                    body: JSON.stringify({account}),
+                                                });
+                                                const account_result = await account_response.json();
+                                                if (account_result.exists) {
+                                                    alert("該帳好已存在，請重新確認");
+                                                    return false;
+                                                }
+                                            } catch (error) {
+                                                console.error("Error during validation:", error);
+                                                alert("檢查過程中出現問題，請稍後再試！！");
+                                                return false;
+                                            }
+
+                                            try {
+                                                // 使用 fetch 发送异步请求到服务器检查 rankType 和 rank 是否存在
+                                                const response = await fetch('{{ url_for("main.check_rank") }}', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                    },
+                                                    body: JSON.stringify({ rankType, rank }),
+                                                });
+                                    
+                                                const result = await response.json();
+                                    
+                                                if (result.exists) {
+                                                    // 如果 rankType 和 rank 不存在，显示提示并阻止提交
+                                                    alert("該入學方式與排名重複，請重新確認");
+                                                    return false;
+                                                }
+
+                                            } catch (error) {
+                                                console.error("Error during validation:", error);
+                                                alert("檢查過程中出現問題，請稍後再試！");
+                                                return false;
+                                            }
+                                    
+                                            // 显示确认框
+                                            if (confirm('確定要新增此帳號嗎?')) {
+                                                alert('新增成功');
+                                                return true; // 表单将被提交
+                                            } else {
+                                                return false; // 表单将不会被提交
+                                            }
+                                        }
+                                    </script>
+                                    
+                                    
+                                                                        <!-- 提示框 -->
+                                    <div id="success-toast" class="toast align-items-center text-white bg-warning border-0 position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true" style="opacity: 0; transition: opacity 1s; width: 200px; z-index: 1050;">
+                                        <div class="d-flex">
+                                            <div class="toast-body">
+                                                <i class="fas fa-info-circle me-2"></i>新增成功
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <script>
+                                        document.getElementById('create-account-form').addEventListener('submit', function(event) {
+                                        event.preventDefault(); // 防止表單提交
+                                    
+                                        // 顯示提示框
+                                        var toast = document.getElementById('success-toast');
+                                        toast.style.opacity = 1;
+                                    
+                                        // 1秒後開始逐漸淡出
+                                        setTimeout(function() {
+                                            toast.style.opacity = 0;
+                                        }, 1500);
+                                    
+                                        // 重置表單
+                                        event.target.reset();
+                                    });
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Contact End -->
+
+
+        <!-- Footer Start -->
+        <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
+        <div class="container py-5">
+            <div class="row g-4">
+                <!-- 左邊區塊：中央大學的Google地圖 -->
+                <div class="col-lg-2">
+                </div>
+                <div class="col-lg-4">
+                    <div class="card border-0">
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d14467.76001603884!2d121.1952988!3d24.9681558!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346823c1ec904dcb%3A0xcdc129d4455ce456!2z5ZyL56uL5Lit5aSu5aSn5a24!5e0!3m2!1szh-TW!2stw!4v1733202944088!5m2!1szh-TW!2stw" width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    
+                    </div>
+                </div>
+                <!-- 右邊區塊：中央資管的資訊 -->
+                <div class="col-lg-6">
+                    <div class="card border-0 bg-dark">
+                        <div class="card-body">
+                            <h4 class="text-light mb-3">中央大學資訊管理系</h4>
+                            <ul class="list-unstyled text-white">
+                                <li class="mb-2">
+                                    <a href="https://im.mgt.ncu.edu.tw/" class="text-white" target="_blank">
+                                        <i class="fas fa-link me-2"></i>中央大學資訊管理系系網連結
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-map-marker-alt me-2"></i>地址：桃園市中壢區中大路300號 管理二館213室
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-phone-alt me-2"></i>系辦電話：(03)422-7151 分機 66500, 66501, 66536, 66559
+                                </li>
+                                <li>
+                                    <i class="fas fa-envelope me-2"></i>公務信箱: <a href="mailto:ncu6500@ncu.edu.tw" class="text-white">ncu6500@ncu.edu.tw</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+        <!-- JavaScript Libraries -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="{{ url_for('static', filename='lib/easing/easing.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='lib/waypoints/waypoints.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='lib/lightbox/js/lightbox.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='lib/owlcarousel/owl.carousel.min.js') }}"></script>
+
+        <!-- Template Javascript -->
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    </body>
+
+</html>
