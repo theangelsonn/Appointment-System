@@ -2,50 +2,104 @@ import mysql.connector
 
 
 def get_db_connection():
+    # 建立與 MySQL 資料庫的連接
     connection = mysql.connector.connect(
+        # 資料庫主機位置
         host='localhost',
+        # 資料庫使用者名稱
         user='root',
+        # 資料庫密碼
         password='REDACTED_PASSWORD',
+        # 要連接的資料庫名稱
         database='appointment_system'
     )
+    # 返回資料庫連接物件
     return connection
-
-# 新增 Account 模型和相關操作函數
 
 
 class Account:
+    """
+    帳號類別：用於管理使用者帳號資訊
+    """
+
     def __init__(self, accountID, account, password, role):
-        self.accountID = accountID
-        self.account = account
-        self.password = password
-        self.role = role
+        """
+        初始化帳號物件
+        參數說明：
+        accountID: 帳號唯一識別碼
+        account: 使用者帳號名稱（通常是電子郵件）
+        password: 帳號密碼
+        role: 使用者角色 (0:學生, 1:教授, 2:秘書)
+        """
+        self.accountID = accountID    # 帳號ID
+        self.account = account        # 帳號名稱
+        self.password = password      # 帳號密碼
+        self.role = role             # 使用者角色
 
 
 def get_account_by_account(account):
+    """
+    根據帳號名稱查詢使用者帳號資訊
+    參數：
+    account: 使用者帳號名稱（通常是電子郵件）
+    返回：
+    如果找到帳號，返回 Account 物件
+    如果未找到，返回 None
+    """
+    # 建立資料庫連接
     connection = get_db_connection()
+    # 建立游標物件，設定返回字典格式的結果
     cursor = connection.cursor(dictionary=True)
+    # SQL 查詢語句，使用參數化查詢防止 SQL 注入
     query = "SELECT * FROM account WHERE account = %s"
+    # 執行查詢，傳入帳號參數
     cursor.execute(query, (account,))
+    # 獲取查詢結果的第一行
     row = cursor.fetchone()
+    # 關閉游標
     cursor.close()
+    # 關閉資料庫連接
     connection.close()
+    # 印出查詢的帳號（用於除錯）
     print(f"user_account: {account}")
+    # 如果找到帳號資料
     if row:
+        # 將查詢結果轉換為 Account 物件並返回
         return Account(**row)
+    # 如果未找到帳號資料，返回 None
     return None
 
 
 def get_professors():
+    """
+    獲取所有教授的基本資訊
+    返回：
+    包含所有教授資料的列表，每個教授包含：
+    - name: 教授姓名
+    - professorship: 教授職稱
+    - photo: 教授照片
+    - professorID: 教授ID
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
         "SELECT name, professorship, photo, professorID FROM professor")
+    # 獲取所有查詢結果
     professors = cursor.fetchall()
     connection.close()
+    # 返回教授資料列表
     return professors
 
 
 def get_account_by_account_id(account_id):
+    """
+    根據帳號ID查詢使用者帳號資訊
+    參數：
+    account_id: 帳號唯一識別碼
+    返回：
+    如果找到帳號，返回帳號資訊元組
+    如果未找到，返回 None
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM account where accountID = %s", (account_id,))
@@ -55,6 +109,14 @@ def get_account_by_account_id(account_id):
 
 
 def get_professor_by_id(professor_id):
+    """
+    根據教授ID查詢教授資訊
+    參數：
+    professor_id: 教授唯一識別碼
+    返回：
+    如果找到教授，返回教授資訊元組
+    如果未找到，返回 None
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
@@ -65,6 +127,14 @@ def get_professor_by_id(professor_id):
 
 
 def get_otherinfo(professor_id):
+    """
+    獲取教授的其他相關資訊（如實驗室資訊、研究領域等）
+    參數：
+    professor_id: 教授唯一識別碼
+    返回：
+    如果找到資訊，返回包含其他資訊的元組
+    如果未找到，返回 None
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
@@ -75,6 +145,14 @@ def get_otherinfo(professor_id):
 
 
 def get_appointmentslot(professor_id):
+    """
+    獲取教授的預約時段資訊
+    參數：
+    professor_id: 教授唯一識別碼
+    返回：
+    如果找到資訊，返回包含預約時段的元組
+    如果未找到，返回 None
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
@@ -85,6 +163,14 @@ def get_appointmentslot(professor_id):
 
 
 def get_professor_by_account_id(account_id):
+    """
+    根據帳號ID查詢對應的教授資訊
+    參數：
+    account_id: 帳號唯一識別碼
+    返回：
+    如果找到教授，返回教授資訊元組
+    如果未找到，返回 None
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
@@ -95,15 +181,28 @@ def get_professor_by_account_id(account_id):
 
 
 def update_appointment_slots(professor_id, new_slot):
+    """
+    更新教授的預約時段資訊
+    參數：
+    professor_id: 教授唯一識別碼
+    new_slot: 新的預約時段資訊
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
         "UPDATE appointmentslot SET availableTimeInfo = %s WHERE professorID = %s", (new_slot, professor_id))
+    # 提交資料庫變更
     connection.commit()
     connection.close()
 
 
 def update_notice(professor_id, new_notice):
+    """
+    更新教授的面試注意事項
+    參數：
+    professor_id: 教授唯一識別碼
+    new_notice: 新的面試注意事項內容
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
@@ -113,6 +212,12 @@ def update_notice(professor_id, new_notice):
 
 
 def update_lab_rule(professor_id, new_lab_rule):
+    """
+    更新教授的實驗室規則/說明
+    參數：
+    professor_id: 教授唯一識別碼
+    new_lab_rule: 新的實驗室規則/說明內容
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("UPDATE otherinfo SET labDescription = %s WHERE professorID = %s",
@@ -122,6 +227,12 @@ def update_lab_rule(professor_id, new_lab_rule):
 
 
 def update_research_area(professor_id, new_research_area):
+    """
+    更新教授的研究領域資訊
+    參數：
+    professor_id: 教授唯一識別碼
+    new_research_area: 新的研究領域內容
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("UPDATE otherinfo SET researchField = %s WHERE professorID = %s",
@@ -131,6 +242,13 @@ def update_research_area(professor_id, new_research_area):
 
 
 def update_reservationOpen_status(professor_id, new_status):
+    """
+    更新教授的預約開放狀態
+    參數：
+    professor_id: 教授唯一識別碼
+    new_status: 新的預約開放狀態 (0:關閉預約, 1:開放預約）
+    """
+    # 印出更新資訊（用於除錯）
     print(f"professor_id: {professor_id}, new_status: {new_status}")
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -141,16 +259,32 @@ def update_reservationOpen_status(professor_id, new_status):
 
 
 def get_student_count(professor_id):
+    """
+    獲取特定教授目前指導的學生人數
+    參數：
+    professor_id: 教授唯一識別碼
+    返回：
+    已接受指導的學生人數 (status = 1 表示已接受指導）
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
         "SELECT COUNT(*) FROM mentorshiprequest WHERE professorID = %s AND status = 1", (professor_id,))
+    # 獲取查詢結果（計數值）
     student_count = cursor.fetchone()[0]
     connection.close()
     return student_count
 
 
 def get_student_by_account_id(account_id):
+    """
+    根據帳號ID查詢對應的學生資訊
+    參數：
+    account_id: 帳號唯一識別碼
+    返回：
+    如果找到學生，返回學生資訊元組
+    如果未找到，返回 None
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
@@ -312,7 +446,7 @@ def get_student_appointments(account_id):
             JOIN professor p ON a.professorID = p.professorID
             JOIN student s ON a.studentID = s.studentID
             WHERE s.accountID = %s       # 篩選特定學生的預約
-            ORDER BY a.requestDate DESC   # 按申請日期降序排��
+            ORDER BY a.requestDate DESC   # 按申請日期做降序排序
         """
         cursor.execute(query, (account_id,))
         return cursor.fetchall()
@@ -420,7 +554,7 @@ def create_pro_account(name, email, department, professorship, location, labStud
         "INSERT INTO account (account, role) VALUES (%s, %s)", (email, 1,))
     account_id = cursor.lastrowid
 
-    # 插入學生資料
+    # 插入教授資料
     cursor.execute("""
         INSERT INTO professor (accountID, name, email, department, professorship)
         VALUES (%s, %s, %s, %s, %s)
