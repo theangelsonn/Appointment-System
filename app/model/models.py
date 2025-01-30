@@ -50,10 +50,23 @@ def get_account_by_account(account):
     connection = get_db_connection()
     # 建立游標物件，設定返回字典格式的結果
     cursor = connection.cursor(dictionary=True)
-    # SQL 查詢語句，使用參數化查詢防止 SQL 注入
+    # 不安全的寫法（容易遭受 SQL Injection）：
+    # query = f"SELECT * FROM account WHERE account = '{account}'"
+    # 安全的寫法（使用參數化查詢）：
+    # SQL 查詢語句，使用參數化查詢防止 SQL Injection
     query = "SELECT * FROM account WHERE account = %s"
+    # %s 會被 cursor.execute() 中的參數自動替換
+    # 參數會被正確地轉義（escape）和格式化
+    # 例子：
+    # account = "test@email.com"
+    # cursor.execute("SELECT * FROM account WHERE account = %s", (account,))
+    # 實際執行的 SQL 會像：SELECT * FROM account WHERE account = 'test@email.com'
     # 執行查詢，傳入帳號參數
-    cursor.execute(query, (account,))
+    cursor.execute(query, (account,))   # 傳入一個單元素的元組 (tuple)
+    # 支援多個參數
+    # 多個參數的例子：
+    # cursor.execute("SELECT * FROM account WHERE account = %s AND password = %s",
+    #               (account, password))
     # 獲取查詢結果的第一行
     row = cursor.fetchone()
     # 關閉游標
@@ -295,16 +308,28 @@ def get_student_by_account_id(account_id):
 
 
 def update_student_profile(account_id, name, password, account, email, phone, photo):
+    """
+    更新學生的個人資料
+    參數：
+    account_id: 帳號唯一識別碼
+    name: 學生姓名
+    password: 帳號密碼
+    account: 帳號名稱（通常是電子郵件）
+    email: 電子郵件
+    phone: 電話號碼
+    photo: 照片檔案（可選）
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
+    # 根據是否有上傳照片執行不同的更新語句
     if photo:
+        # 如果有照片，更新學生資料（包含照片）
         cursor.execute("UPDATE student SET name = %s, email = %s, phone = %s, photo = %s WHERE accountID = %s",
                        (name, email, phone, photo, account_id))
     else:
+        # 如果沒有照片，更新學生資料（不包含照片）
         cursor.execute("UPDATE student SET name = %s, email = %s, phone = %s WHERE accountID = %s",
                        (name, email, phone, account_id))
-    connection.commit()
-    cursor = connection.cursor()
     cursor.execute("UPDATE account SET account = %s, password = %s WHERE accountID = %s",
                    (account, password, account_id))
     connection.commit()
@@ -312,22 +337,32 @@ def update_student_profile(account_id, name, password, account, email, phone, ph
 
 
 def update_professor_profile(account_id, name, password, account, professorship, email, phone, photo):
+    """
+    更新教授的個人資料
+    參數：
+    account_id: 帳號唯一識別碼
+    name: 教授姓名
+    password: 帳號密碼
+    account: 帳號名稱（通常是電子郵件）
+    professorship: 教授職稱
+    email: 電子郵件
+    phone: 電話號碼
+    photo: 照片檔案（可選）
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     if photo:
+        # 如果有照片，更新教授資料（包含照片）
         cursor.execute("UPDATE professor SET name = %s, professorship = %s, email = %s, phone = %s, photo = %s WHERE accountID = %s",
                        (name, professorship, email, phone, photo, account_id))
     else:
+        # 如果沒有照片，更新教授資料（不包含照片）
         cursor.execute("UPDATE professor SET name = %s, professorship = %s, email = %s, phone = %s WHERE accountID = %s",
                        (name, professorship, email, phone, account_id))
-    connection.commit()
-    cursor = connection.cursor()
     cursor.execute("UPDATE account SET account = %s, password = %s WHERE accountID = %s",
                    (account, password, account_id))
     connection.commit()
     connection.close()
-
-# 從這開始多申請預約功能
 
 
 def create_appointment(professor_id, student_id, start_time, end_time, resume_filename, note=''):
@@ -340,8 +375,11 @@ def create_appointment(professor_id, student_id, start_time, end_time, resume_fi
     end_time: 預約結束時間
     resume_filename: 履歷檔案名稱
     note: 備註(可選)
+    返回：
+    成功時返回 True ; 失敗時拋出異常
     """
     connection = get_db_connection()
+    # 建立具有緩衝功能的游標，避免未讀取結果就執行新查詢的問題
     cursor = connection.cursor(buffered=True)
     try:
         # 檢查學生是否已存在於資料庫
@@ -354,11 +392,13 @@ def create_appointment(professor_id, student_id, start_time, end_time, resume_fi
             # 如果學生存在，直接使用現有的學生ID
             actual_student_id = student_result[0]
         else:
-            # 如果學生不存在，則創建新的學生記錄
+            # 如果學生不存在，則從 account 表獲取基本資訊
             cursor.execute(
                 "SELECT account FROM account WHERE accountID = %s", (student_id,))
             account_info = cursor.fetchone()
+            # 使用電子郵件作為基本資訊
             student_email = account_info[0]
+            # 從電子郵件中提取用戶名作為學生姓名
             student_name = student_email.split('@')[0]
 
             # 插入新學生資料，設定預設的考試資訊
@@ -368,24 +408,30 @@ def create_appointment(professor_id, student_id, start_time, end_time, resume_fi
                 VALUES 
                 (%s, %s, %s, '09REDACTED_PASSWORD', '資管系', '113', '考試-備取', 1)
             """, (student_id, student_name, student_email))
+            # 提交新學生資料
             connection.commit()
+            # 獲取新插入記錄的 ID
             actual_student_id = cursor.lastrowid
 
-        # 創建預約記錄
+        # 創建預約記錄（status = 0 表示待回覆狀態）
         cursor.execute("""
             INSERT INTO appointment 
             (professorID, studentID, startTime, endTime, resume, note, status, requestDate, approvalDate)
             VALUES 
             (%s, %s, %s, %s, %s, %s, 0, CURDATE(), NULL)
         """, (professor_id, actual_student_id, start_time, end_time, resume_filename, note))
+        # 提交預約記錄
         connection.commit()
         return True
 
     except Exception as e:
+        # 發生錯誤時印出錯誤訊息並回滾交易
         print(f"預約創建錯誤: {str(e)}")
         connection.rollback()
-        raise
+        raise   # 重新拋出異常
+
     finally:
+        # 確保資源被正確釋放
         cursor.close()
         connection.close()
 
@@ -393,34 +439,44 @@ def create_appointment(professor_id, student_id, start_time, end_time, resume_fi
 def get_appointments_by_professor(professor_id):
     """
     獲取特定教授的所有預約記錄
-    按照申請日期降序排列，並根據考試類型排序
+    參數：
+    professor_id: 教授唯一識別碼
+    返回：
+    包含所有預約記錄的列表，每筆記錄包含：
+    - 預約相關資訊 (a.*)
+    - 學生姓名
+    - 考試類型和名次
+    - 完整排名資訊
+    - 學生信箱
+    排序方式：
+    1. 優先按申請日期降序（新的在前）
+    2. 其次按考試名次升序（排名好的在前）
     """
     connection = get_db_connection()
+    # 建立游標，設定返回字典格式的結果
     cursor = connection.cursor(dictionary=True)
     try:
         query = """
             SELECT 
-                a.*,
-                s.name as student_name,  # 學生姓名
-                s.rankType,              # 考試類型
-                s.rank,                  # 名次
+                a.*,                     # 所有預約表的欄位
+                s.name as student_name,  # 學生姓名（重新命名避免欄位名稱衝突）
+                s.rankType,              # 考試類型（如：考試分發、申請入學）
+                s.rank,                  # 名次（數字）
                 CASE 
                     WHEN s.rankType IS NOT NULL AND s.rank IS NOT NULL 
                     THEN CONCAT(
                         s.rankType,      # 組合考試類型
-                        
-                        CAST(s.rank as CHAR)
-                        
+                        CAST(s.rank as CHAR)  # 將名次轉為字串並連接
                     )
-                    ELSE '尚未設定'
-                END as rank_info,        # 完整排名資訊
+                    ELSE '尚未設定'      # 若資料不完整則顯示預設值
+                END as rank_info,        # 完整排名資訊 (例: 考試分發1)
                 s.email                  # 學生信箱
             FROM appointment a
-            JOIN student s ON a.studentID = s.studentID
-            WHERE a.professorID = %s
+            JOIN student s ON a.studentID = s.studentID  # 關聯預約表和學生表
+            WHERE a.professorID = %s     # 篩選特定教授的預約
             ORDER BY 
-                a.requestDate DESC,      # 優先按申請日期排序
-                s.rank ASC               # 再按名次排序
+                a.requestDate DESC,      # 優先按申請日期降序排列
+                s.rank ASC               # 次要按名次升序排列
         """
         cursor.execute(query, (professor_id,))
         return cursor.fetchall()
@@ -429,10 +485,18 @@ def get_appointments_by_professor(professor_id):
         connection.close()
 
 
-def get_student_appointments(account_id):
+def get_appointments_by_student(account_id):
     """
     獲取特定學生的所有預約記錄
-    包含教授資訊和預約狀態
+    參數：
+    account_id: 學生帳號ID
+    返回：
+    包含所有預約記錄的列表，每筆記錄包含：
+    - 預約相關資訊（時間、狀態等）
+    - 教授姓名
+    - 教授照片
+    排序方式：
+    - 按申請日期降序（新的在前）
     """
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -443,8 +507,8 @@ def get_student_appointments(account_id):
                 p.name as professor_name, # 教授姓名
                 p.photo                  # 教授照片
             FROM appointment a
-            JOIN professor p ON a.professorID = p.professorID
-            JOIN student s ON a.studentID = s.studentID
+            JOIN professor p ON a.professorID = p.professorID  # 關聯預約表和教授表
+            JOIN student s ON a.studentID = s.studentID        # 關聯預約表和學生表
             WHERE s.accountID = %s       # 篩選特定學生的預約
             ORDER BY a.requestDate DESC   # 按申請日期做降序排序
         """
@@ -458,12 +522,22 @@ def get_student_appointments(account_id):
 def update_appointment_status(appointment_id, new_status, approval_date=None):
     """
     更新預約狀態
-    new_status: 0-待回覆, 1-已確認, 2-已拒絕
-    approval_date: 審核日期(可選)
+    參數：
+    appointment_id: 預約記錄的唯一識別碼
+    new_status: 新的預約狀態
+        0: 待回覆
+        1: 已確認
+        2: 已拒絕
+    approval_date: 審核日期（可選）
+        - 如果提供，會同時更新審核日期
+        - 如果不提供，只更新狀態
     """
     connection = get_db_connection()
     cursor = connection.cursor()
+
+    # 根據是否提供審核日期執行不同的更新語句
     if approval_date:
+        # 更新狀態和審核日期
         query = """
             UPDATE appointment 
             SET status = %s, approvalDate = %s 
@@ -471,6 +545,7 @@ def update_appointment_status(appointment_id, new_status, approval_date=None):
         """
         cursor.execute(query, (new_status, approval_date, appointment_id))
     else:
+        # 只更新狀態
         query = "UPDATE appointment SET status = %s WHERE appointmentID = %s"
         cursor.execute(query, (new_status, appointment_id))
     connection.commit()
@@ -479,6 +554,14 @@ def update_appointment_status(appointment_id, new_status, approval_date=None):
 
 
 def get_all_professors():
+    """
+    獲取所有教授的資料
+    返回：
+    包含所有教授資訊的列表，每筆記錄包含：
+    - 教授基本資料 (p.*)
+    - 帳號資訊 (account, password)
+    - 其他相關資訊 (otherInfo表的所有欄位)
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("""
@@ -493,6 +576,25 @@ def get_all_professors():
 
 
 def get_all_students():
+    """
+    獲取所有學生的資料
+    返回：
+    包含所有學生資訊的列表，每筆記錄包含：
+    - 學生基本資料 (s.*)
+        - studentID: 學生ID
+        - accountID: 帳號ID
+        - name: 姓名
+        - email: 電子郵件
+        - phone: 電話
+        - department: 系所
+        - admissionYear: 入學年度
+        - rankType: 考試類型
+        - rank: 名次
+        - photo: 照片
+    - 帳號資訊
+        - account: 帳號名稱
+        - password: 密碼
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("""
