@@ -456,7 +456,7 @@ def check_rank():
     rankType = data.get('rankType')
     rank = data.get('rank')
 
-    # 检查是否存在于数据库
+    # 檢查是否存在於資料庫
     exists = check_existing_student(rankType, rank)
     # print(exists,exists)
     return jsonify({'exists': exists})
@@ -467,7 +467,7 @@ def check_account():
     data = request.get_json()
     account = data.get('account')
 
-    # 检查是否存在于数据库
+    # 檢查是否存在於資料庫
     exists = check_existing_account(account)
     return jsonify({'exists': exists})
 
@@ -477,7 +477,7 @@ def check_location():
     data = request.get_json()
     location = data.get('location')
 
-    # 检查是否存在于数据库
+    # 檢查是否存在於資料庫
     exists = check_existing_location(location)
     print(exists)
 

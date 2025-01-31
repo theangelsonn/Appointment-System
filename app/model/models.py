@@ -458,28 +458,29 @@ def get_appointments_by_professor(professor_id):
     try:
         query = """
             SELECT 
-                a.*,                     # 所有預約表的欄位
-                s.name as student_name,  # 學生姓名（重新命名避免欄位名稱衝突）
-                s.rankType,              # 考試類型（如：考試分發、申請入學）
-                s.rank,                  # 名次（數字）
+                a.*,                     -- 所有預約表的欄位
+                s.name as student_name,  -- 學生姓名（重新命名避免欄位名稱衝突）
+                s.rankType,              -- 考試類型（如：考試分發、申請入學）
+                s.rank,                  -- 名次（數字）
                 CASE 
                     WHEN s.rankType IS NOT NULL AND s.rank IS NOT NULL 
                     THEN CONCAT(
-                        s.rankType,      # 組合考試類型
-                        CAST(s.rank as CHAR)  # 將名次轉為字串並連接
+                        s.rankType,      -- 組合考試類型
+                        CAST(s.rank as CHAR)  -- 將名次轉為字串並連接
                     )
-                    ELSE '尚未設定'      # 若資料不完整則顯示預設值
-                END as rank_info,        # 完整排名資訊 (例: 考試分發1)
-                s.email                  # 學生信箱
+                    ELSE '尚未設定'      -- 若資料不完整則顯示預設值
+                END as rank_info,        -- 完整排名資訊 (例: 考試分發1)
+                s.email                  -- 學生信箱
             FROM appointment a
-            JOIN student s ON a.studentID = s.studentID  # 關聯預約表和學生表
-            WHERE a.professorID = %s     # 篩選特定教授的預約
+            JOIN student s ON a.studentID = s.studentID  -- 關聯預約表和學生表
+            WHERE a.professorID = %s     -- 篩選特定教授的預約
             ORDER BY 
-                a.requestDate DESC,      # 優先按申請日期降序排列
-                s.rank ASC               # 次要按名次升序排列
+                a.requestDate DESC,      -- 優先按申請日期降序排列
+                s.rank ASC               -- 次要按名次升序排列
         """
         cursor.execute(query, (professor_id,))
         return cursor.fetchall()
+
     finally:
         cursor.close()
         connection.close()
@@ -503,17 +504,18 @@ def get_appointments_by_student(account_id):
     try:
         query = """
             SELECT 
-                a.*,                     # 預約相關資訊
-                p.name as professor_name, # 教授姓名
-                p.photo                  # 教授照片
+                a.*,                     -- 預約相關資訊
+                p.name as professor_name, -- 教授姓名
+                p.photo                  -- 教授照片
             FROM appointment a
-            JOIN professor p ON a.professorID = p.professorID  # 關聯預約表和教授表
-            JOIN student s ON a.studentID = s.studentID        # 關聯預約表和學生表
-            WHERE s.accountID = %s       # 篩選特定學生的預約
-            ORDER BY a.requestDate DESC   # 按申請日期做降序排序
+            JOIN professor p ON a.professorID = p.professorID  -- 關聯預約表和教授表
+            JOIN student s ON a.studentID = s.studentID        -- 關聯預約表和學生表
+            WHERE s.accountID = %s       -- 篩選特定學生的預約
+            ORDER BY a.requestDate DESC   -- 按申請日期做降序排序
         """
         cursor.execute(query, (account_id,))
         return cursor.fetchall()
+
     finally:
         cursor.close()
         connection.close()
@@ -608,94 +610,222 @@ def get_all_students():
 
 
 def delete_student(account_id):
-    # print(f"account_id: {account_id}")
+    """
+    刪除學生帳號及相關資料
+    參數：
+    account_id: 學生帳號的唯一識別碼
+
+    處理流程：
+    1. 刪除 student 表中的學生資料
+    2. 刪除 account 表中的帳號資料
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
-    cursor.execute("DELETE FROM student WHERE accountID = %s", (account_id,))
-    cursor.execute("DELETE FROM account WHERE accountID = %s", (account_id,))
-    connection.commit()
-    connection.close()
+    try:
+        # 刪除學生資料
+        cursor.execute(
+            "DELETE FROM student WHERE accountID = %s", (account_id,))
+        # 刪除帳號資料
+        cursor.execute(
+            "DELETE FROM account WHERE accountID = %s", (account_id,))
+
+        connection.commit()
+
+    except Exception as e:
+        # 發生錯誤時回滾交易
+        print(f"刪除學生資料時發生錯誤: {str(e)}")
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
 def delete_professor(account_id):
+    """
+    刪除教授帳號及相關資料
+    參數：
+    account_id: 教授帳號的唯一識別碼
+
+    處理流程：
+    1. 刪除 professor 表中的教授資料
+    2. 刪除 account 表中的帳號資料
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
-    cursor.execute("DELETE FROM professor WHERE accountID = %s", (account_id,))
-    cursor.execute("DELETE FROM account WHERE accountID = %s", (account_id,))
-    connection.commit()
-    connection.close()
+    try:
+        # 刪除教授資料
+        cursor.execute(
+            "DELETE FROM professor WHERE accountID = %s", (account_id,))
+        # 刪除帳號資料
+        cursor.execute(
+            "DELETE FROM account WHERE accountID = %s", (account_id,))
+
+        connection.commit()
+
+    except Exception as e:
+        # 發生錯誤時回滾交易
+        print(f"刪除教授資料時發生錯誤: {str(e)}")
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
 def create_student_account(name, email, rankType, rank, department, admissionYear):
+    """
+    創建新的學生帳號
+    參數：
+    name: 學生姓名
+    email: 電子郵件（同時作為帳號使用）
+    rankType: 考試類型（如：考試分發、申請入學）
+    rank: 名次
+    department: 系所
+    admissionYear: 入學年度
+
+    處理流程：
+    1. 在 account 表中創建帳號 (role=0 表示學生身份）
+    2. 在 student 表中創建學生基本資料
+    """
+    # 除錯用：印出所有傳入的參數
     print(f"name: {name, email, rankType, rank, department, admissionYear}")
     connection = get_db_connection()
     cursor = connection.cursor()
+    try:
+        # 插入帳號資料（role=0 代表學生身份）
+        cursor.execute(
+            "INSERT INTO account (account, role) VALUES (%s, %s)", (email, 0,))
+        account_id = cursor.lastrowid
 
-    # 插入帳號資料
-    cursor.execute(
-        "INSERT INTO account (account, role) VALUES (%s, %s)", (email, 0,))
-    account_id = cursor.lastrowid
+        # 插入學生基本資料
+        cursor.execute("""
+            INSERT INTO student (accountID, name, rankType, rank, department, admissionYear, email)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (account_id, name, rankType, rank, department, admissionYear, email))
 
-    # 插入學生資料
-    cursor.execute("""
-        INSERT INTO student (accountID, name, rankType, rank, department, admissionYear, email)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """, (account_id, name, rankType, rank, department, admissionYear, email))
+        connection.commit()
 
-    connection.commit()
-    connection.close()
+    except Exception as e:
+        # 發生錯誤時回滾交易
+        print(f"創建學生帳號時發生錯誤: {str(e)}")
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
 def create_pro_account(name, email, department, professorship, location, labStudentNum):
+    """
+    創建新的教授帳號
+    參數：
+    name: 教授姓名
+    email: 電子郵件（同時作為帳號使用）
+    department: 系所
+    professorship: 職稱
+    location: 研究室位置
+    labStudentNum: 實驗室學生人數上限
+
+    處理流程：
+    1. 在 account 表中創建帳號 (role=1 表示教授身份）
+    2. 在 professor 表中創建教授基本資料
+    3. 在 otherInfo 表中創建教授其他資訊
+    4. 在 appointmentslot 表中創建預約時段設定
+    """
+    # 除錯用：印出所有傳入的參數
     print(f"name: {name, email, department, professorship}")
     connection = get_db_connection()
     cursor = connection.cursor()
+    try:
+        # 插入帳號資料（role=1 代表教授身份）
+        cursor.execute(
+            "INSERT INTO account (account, role) VALUES (%s, %s)", (email, 1,))
+        account_id = cursor.lastrowid
 
-    # 插入帳號資料
-    cursor.execute(
-        "INSERT INTO account (account, role) VALUES (%s, %s)", (email, 1,))
-    account_id = cursor.lastrowid
+        # 插入教授基本資料
+        cursor.execute("""
+            INSERT INTO professor (accountID, name, email, department, professorship)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (account_id, name, email, department, professorship,))
+        professor_id = cursor.lastrowid
+        print(f"professor_id: {professor_id}")  # 除錯用：印出教授ID
 
-    # 插入教授資料
-    cursor.execute("""
-        INSERT INTO professor (accountID, name, email, department, professorship)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (account_id, name, email, department, professorship,))
-    professor_id = cursor.lastrowid
-    print(f"professor_id: {professor_id}")
-    cursor.execute("""
-        INSERT INTO otherInfo (professorID, location, labStudentNum)
-        VALUES (%s, %s, %s)
-    """, (professor_id, location, labStudentNum,))
-    cursor.execute("""
-        INSERT INTO appointmentslot (professorID)
-        VALUES (%s)
-    """, (professor_id,))
+        # 插入教授其他資訊
+        cursor.execute("""
+            INSERT INTO otherInfo (professorID, location, labStudentNum)
+            VALUES (%s, %s, %s)
+        """, (professor_id, location, labStudentNum,))
 
-    connection.commit()
-    connection.close()
+        # 創建預約時段設定
+        cursor.execute("""
+            INSERT INTO appointmentslot (professorID)
+            VALUES (%s)
+        """, (professor_id,))
 
-# 秉謙
-# 獲取所有教授的名字
+        connection.commit()
+
+    except Exception as e:
+        # 發生錯誤時回滾交易
+        print(f"創建教授帳號時發生錯誤: {str(e)}")
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
+# 以下內容為秉謙在這個專案中所撰寫的程式碼
 def get_all_professor_names():
+    """
+    獲取所有教授的姓名列表
+
+    返回：
+    list: 包含所有教授姓名的列表
+    例如：['張教授', '李教授', '王教授']
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
+    try:
+        # 從 professor 表中獲取所有教授的名字
+        cursor.execute("SELECT name FROM professor ORDER BY name")  # 按姓名排序
+        professors = cursor.fetchall()
 
-    # 從 professor 表中獲取所有教授的名字
-    cursor.execute("SELECT name FROM professor")
-    professors = cursor.fetchall()
+        # 將查詢結果轉換為名字列表並返回
+        # fetchall() 返回的是元組列表 [(name1,), (name2,)]
+        # 使用列表推導式取出每個元組的第一個元素
+        return [professor[0] for professor in professors]
 
-    cursor.close()
-    connection.close()
+    except Exception as e:
+        print(f"獲取教授名單時發生錯誤: {str(e)}")
+        raise
 
-    # 將查詢結果轉換為名字列表並返回
-    return [professor[0] for professor in professors]
+    finally:
+        cursor.close()
+        connection.close()
 
 
-# 創建指導邀請
 def create_mentorship_request(professor_id, student_id):
+    """
+    創建指導邀請
+    參數：
+    professor_id: 教授ID
+    student_id: 學生ID
+
+    處理流程：
+    1. 在 mentorshiprequest 表中創建新的指導邀請記錄
+    2. 設定初始狀態為待回覆 (status = 0)
+    3. 記錄當前日期為請求日期
+
+    狀態說明：
+    - status = 0: 待回覆
+    - status = 1: 同意邀請
+    - status = 2: 拒絕邀請
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
@@ -708,10 +838,15 @@ def create_mentorship_request(professor_id, student_id):
         """
         # 執行 SQL 查詢，插入新記錄
         cursor.execute(query, (professor_id, student_id))
+
         connection.commit()
+
     except Exception as e:
+        # 發生錯誤時回滾交易
+        print(f"創建指導邀請時發生錯誤: {str(e)}")
         connection.rollback()
         raise
+
     finally:
         cursor.close()
         connection.close()
@@ -719,52 +854,149 @@ def create_mentorship_request(professor_id, student_id):
 
 # 獲取教授ID
 def get_professor_id_by_name(name):
+    """
+    根據教授姓名獲取其 ID
+    參數：
+    name: 教授姓名
+
+    返回：
+    int: 教授ID (如果找到)
+    None: 如果找不到對應的教授
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
-    cursor.execute(
-        "SELECT professorID FROM professor WHERE name = %s", (name,))
-    result = cursor.fetchone()
-    cursor.close()
-    connection.close()
-    return result[0] if result else None
+    try:
+        # 查詢指定姓名教授的 ID
+        cursor.execute(
+            "SELECT professorID FROM professor WHERE name = %s", (name,))
+        result = cursor.fetchone()
+        # 如果找到教授則返回其 ID，否則返回 None
+        return result[0] if result else None
+
+    except Exception as e:
+        print(f"查詢教授ID時發生錯誤: {str(e)}")
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
 def check_existing_student(rankType, rank):
+    """
+    檢查是否已存在相同考試類型和名次的學生
+    參數：
+    rankType: 考試類型（如：考試分發、申請入學）
+    rank: 名次
+
+    返回：
+    bool: True 表示已存在相同條件的學生
+         False 表示不存在相同條件的學生
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
-    cursor.execute(
-        "SELECT COUNT(*) FROM student WHERE rankType = %s AND rank = %s", (rankType, rank,))
-    count = cursor.fetchone()[0]
-    # print(f"count: {count}")
-    connection.close()
-    return count > 0
+    try:
+        # 查詢符合條件的學生數量
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM student 
+            WHERE rankType = %s AND rank = %s
+        """, (rankType, rank,))
+        count = cursor.fetchone()[0]
+        # 如果數量大於 0 則表示已存在
+        return count > 0
+
+    except Exception as e:
+        print(f"檢查學生資料時發生錯誤: {str(e)}")
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
 def check_existing_account(account):
+    """
+    檢查帳號是否已存在
+    參數：
+    account: 要檢查的帳號名稱（通常是電子郵件）
+
+    返回：
+    bool: True 表示帳號已存在
+         False 表示帳號不存在
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
-    cursor.execute(
-        "SELECT COUNT(*) FROM account WHERE account = %s", (account,))
-    count = cursor.fetchone()[0]
-    # print(f"account_count: {count}")
-    connection.close()
-    return count > 0
+    try:
+        # 查詢符合帳號名稱的數量
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM account 
+            WHERE account = %s
+        """, (account,))
+        count = cursor.fetchone()[0]
+        # 如果數量大於 0 則表示帳號已存在
+        return count > 0
+
+    except Exception as e:
+        print(f"檢查帳號時發生錯誤: {str(e)}")
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
 def check_existing_location(location):
+    """
+    檢查研究室位置是否已被使用
+    參數：
+    location: 要檢查的研究室位置
+
+    返回：
+    bool: True 表示該位置已被使用
+         False 表示該位置尚未被使用
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
-    cursor.execute(
-        "SELECT COUNT(*) FROM otherinfo WHERE location = %s", (location,))
-    count = cursor.fetchone()[0]
-    print(f"location_count: {count}")
-    connection.close()
-    return count > 0
+    try:
+        # 查詢符合研究室位置的數量
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM otherinfo 
+            WHERE location = %s
+        """, (location,))
+        count = cursor.fetchone()[0]
+        # 除錯用：印出查詢結果
+        print(f"location_count: {count}")
+        # 如果數量大於 0 則表示位置已被使用
+        return count > 0
 
-# 獲取學生指導邀請紀錄
+    except Exception as e:
+        print(f"檢查研究室位置時發生錯誤: {str(e)}")
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
 def get_student_mentorship_requests(student_id):
+    """
+    獲取學生的指導邀請記錄
+    參數：
+    student_id: 學生ID
+
+    返回：
+    list: 包含指導邀請記錄的列表，每筆記錄包含：
+        - professorName: 教授姓名
+        - status: 邀請狀態（待回覆/同意邀請/拒絕邀請）
+        - submissionTime: 申請日期 (YYYY-MM-DD格式)
+        - reviewTime: 審核日期 (YYYY-MM-DD格式, 若未審核則為'尚未審核')
+
+    排序方式：
+    - 按申請日期降序（新的在前）
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
@@ -782,25 +1014,44 @@ def get_student_mentorship_requests(student_id):
             FROM mentorshiprequest m
             JOIN professor p ON m.professorID = p.professorID
             WHERE m.studentID = %s
-            ORDER BY m.requestDate DESC
+            ORDER BY m.requestDate DESC  -- 按申請日期降序排列
         """, (student_id,))
 
+        # 處理查詢結果，轉換日期格式
         records = []
         for row in cursor.fetchall():
             records.append({
                 'professorName': row[0],
                 'status': row[1],
+                # 格式化申請日期
                 'submissionTime': row[2].strftime('%Y-%m-%d') if row[2] else '',
+                # 格式化審核日期
                 'reviewTime': row[3].strftime('%Y-%m-%d') if row[3] else '尚未審核'
             })
         return records
+
+    except Exception as e:
+        print(f"獲取指導邀請記錄時發生錯誤: {str(e)}")
+        raise
+
     finally:
         cursor.close()
         connection.close()
 
 
-# 獲取學生ID
 def get_student_id_by_account_id(account_id):
+    """
+    根據帳號ID獲取學生ID
+    參數：
+    account_id: 帳號ID (來自account表)
+
+    返回：
+    int: 學生ID (如果找到)
+    None: 如果找不到對應的學生
+
+    說明：
+    用於將登入帳號ID轉換為學生ID, 以便進行其他相關操作
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
@@ -813,33 +1064,61 @@ def get_student_id_by_account_id(account_id):
         result = cursor.fetchone()
         # 如果查詢結果存在，返回 studentID，否則返回 None
         return result[0] if result else None
+
+    except Exception as e:
+        # 發生錯誤時印出錯誤訊息
+        print(f"查詢學生ID時發生錯誤: {str(e)}")
+        raise
+
     finally:
         cursor.close()
         connection.close()
 
 
-# 獲取教授的指導請求記錄
 def get_professor_mentorship_requests(professor_id):
+    """
+    獲取教授收到的待處理指導請求記錄
+    參數：
+    professor_id: 教授ID
+
+    返回：
+    list: 包含指導請求記錄的列表，每筆記錄包含：
+        - name: 學生姓名
+        - email: 學生電子郵件
+        - rankType: 考試類型（如：考試分發、申請入學）
+        - rank: 名次
+        - requestDate: 申請日期 (YYYY-MM-DD格式)
+        - status: 申請狀態 (0=待回覆）
+        - studentID: 學生ID
+        - professorID: 教授ID
+        - requestID: 指導請求記錄ID
+
+    說明：
+    - 只返回狀態為待回覆 (status=0)的請求
+    - 按申請日期降序排列（新的在前）
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
+        # 查詢待處理的指導請求記錄
         cursor.execute("""
             SELECT 
-                s.name,
-                s.email,
-                s.rankType,
-                s.rank,
-                m.requestDate,
-                m.status,
-                s.studentID,
-                m.professorID,
-                m.mentorshipRequestID
+                s.name,          -- 學生姓名
+                s.email,         -- 學生電子郵件
+                s.rankType,      -- 考試類型
+                s.rank,          -- 名次
+                m.requestDate,   -- 申請日期
+                m.status,        -- 申請狀態
+                s.studentID,     -- 學生ID
+                m.professorID,   -- 教授ID
+                m.mentorshipRequestID  -- 指導請求記錄ID
             FROM mentorshiprequest m
             JOIN student s ON m.studentID = s.studentID
-            WHERE m.professorID = %s AND m.status = 0
-            ORDER BY m.requestDate DESC
+            WHERE m.professorID = %s AND m.status = 0  -- 只查詢待回覆的請求
+            ORDER BY m.requestDate DESC  -- 按申請日期降序排序
         """, (professor_id,))
 
+        # 處理查詢結果
         records = []
         for row in cursor.fetchall():
             records.append({
@@ -847,89 +1126,163 @@ def get_professor_mentorship_requests(professor_id):
                 'email': row[1],
                 'rankType': row[2],
                 'rank': row[3],
+                # 格式化日期
                 'requestDate': row[4].strftime('%Y-%m-%d') if row[4] else '',
                 'status': row[5],
                 'studentID': row[6],
                 'professorID': row[7],
-                'requestID': row[8]  # 新增 mentorshipRequestID
+                'requestID': row[8]
             })
         return records
+
+    except Exception as e:
+        # 發生錯誤時印出錯誤訊息
+        print(f"獲取指導請求記錄時發生錯誤: {str(e)}")
+        raise
+
     finally:
         cursor.close()
         connection.close()
 
 
 def update_mentorship_request_status(studentID, professorID, student_name, new_status, request_id):
+    """
+    更新指導請求的狀態
+    參數：
+    studentID: 學生ID
+    professorID: 教授ID
+    student_name: 學生姓名（目前未使用）
+    new_status: 新的狀態值
+        - 1: 同意邀請
+        - 2: 拒絕邀請
+    request_id: 指導請求記錄ID
+
+    處理流程：
+    1. 更新指導請求的狀態
+    2. 設定審核日期為當前日期
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
-        # 更新狀態和審核日期，增加 mentorshipRequestID 的條件
+        # 更新狀態和審核日期
         cursor.execute("""
             UPDATE mentorshiprequest
-            SET status = %s, approvalDate = CURDATE()
-            WHERE studentID = %s 
-            AND professorID = %s 
-            AND mentorshipRequestID = %s
+            SET status = %s,           -- 更新狀態
+                approvalDate = CURDATE()  -- 設定審核日期為當前日期
+            WHERE studentID = %s        -- 指定學生
+            AND professorID = %s        -- 指定教授
+            AND mentorshipRequestID = %s -- 指定請求記錄
         """, (new_status, studentID, professorID, request_id))
         connection.commit()
+
+    except Exception as e:
+        # 發生錯誤時回滾交易
+        print(f"更新指導請求狀態時發生錯誤: {str(e)}")
+        connection.rollback()
+        raise
+
     finally:
         cursor.close()
         connection.close()
 
 
 def get_professor_mentorship_history(professor_id):
+    """
+    獲取教授的指導邀請歷史記錄
+    參數：
+    professor_id: 教授ID
+
+    返回：
+    list: 包含已處理的指導邀請記錄的列表，每筆記錄包含：
+        - name: 學生姓名
+        - status: 處理結果（同意邀請/拒絕邀請）
+        - approvalDate: 審核日期 (YYYY-MM-DD格式)
+
+    說明：
+    - 只返回已處理的請求 (status = 1 或 2)
+    - 按審核日期降序排列（新的在前）
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
         cursor.execute("""
             SELECT 
-                s.name,
+                s.name,                  -- 學生姓名
                 CASE m.status 
-                    WHEN 1 THEN '同意邀請'
-                    WHEN 2 THEN '拒絕邀請'
-                END as status,
-                m.approvalDate
+                    WHEN 1 THEN '同意邀請'  -- 狀態 1 表示同意
+                    WHEN 2 THEN '拒絕邀請'  -- 狀態 2 表示拒絕
+                END as status,           -- 處理結果
+                m.approvalDate           -- 審核日期
             FROM mentorshiprequest m
-            JOIN student s ON m.studentID = s.studentID
-            WHERE m.professorID = %s 
-            AND m.status IN (1, 2)
-            ORDER BY m.approvalDate DESC
+            JOIN student s ON m.studentID = s.studentID  -- 關聯學生資料
+            WHERE m.professorID = %s     -- 篩選特定教授
+            AND m.status IN (1, 2)       -- 只查詢已處理的請求
+            ORDER BY m.approvalDate DESC -- 按審核日期降序排列
         """, (professor_id,))
 
+        # 處理查詢結果
         records = []
         for row in cursor.fetchall():
             records.append({
                 'name': row[0],
                 'status': row[1],
+                # 格式化日期
                 'approvalDate': row[2].strftime('%Y-%m-%d') if row[2] else ''
             })
         return records
+
+    except Exception as e:
+        # 發生錯誤時印出錯誤訊息
+        print(f"獲取指導邀請歷史記錄時發生錯誤: {str(e)}")
+        raise
+
     finally:
         cursor.close()
         connection.close()
 
 
-# 檢查學生是否有待回覆或已同意的指導邀請
 def check_student_mentorship_status(student_id):
+    """
+    檢查學生是否有待回覆或已同意的指導邀請
+    參數：
+    student_id: 學生ID
+
+    返回：
+    str: 指導邀請的狀態
+        - "pending": 有待回覆的邀請（status = 0）
+        - "accepted": 有已同意的邀請（status = 1）
+        - None: 沒有待回覆或已同意的邀請
+
+    說明：
+    - 只檢查最新的一筆記錄（使用 LIMIT 1）
+    - 只關注待回覆和已同意的狀態（status IN (0, 1)）
+    - 用於防止學生同時發送多個指導邀請
+    """
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
-        # 分別檢查待回覆(0)和已同意(1)的狀態
         cursor.execute("""
             SELECT status 
             FROM mentorshiprequest 
-            WHERE studentID = %s AND status IN (0, 1)
-            LIMIT 1
+            WHERE studentID = %s         -- 指定學生
+            AND status IN (0, 1)         -- 只檢查待回覆(0)和已同意(1)的狀態
+            LIMIT 1                      -- 只取最新一筆
         """, (student_id,))
         result = cursor.fetchone()
 
         if result:
             status = result[0]
             if status == 0:
-                return "pending"  # 待回覆
+                return "pending"          # 有待回覆的邀請
             elif status == 1:
-                return "accepted"  # 已同意
-        return None  # 沒有待回覆或已同意的邀請
+                return "accepted"         # 有已同意的邀請
+        return None                      # 沒有待回覆或已同意的邀請
+
+    except Exception as e:
+        # 發生錯誤時印出錯誤訊息
+        print(f"檢查學生指導狀態時發生錯誤: {str(e)}")
+        raise
+
     finally:
         cursor.close()
         connection.close()
