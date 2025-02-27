@@ -25,7 +25,6 @@ def create_app():
     # - Session 資料加密
     # - Flash 訊息加密
     # - CSRF 保護
-    # 注意：在正式環境中應使用強密鑰並妥善保管
     app.secret_key = 'your secret key'
 
     # 註冊路由藍圖

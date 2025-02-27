@@ -1,11 +1,15 @@
 import os
 import re
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session, render_template_string, send_from_directory, current_app, flash
+# 從 models.py 導入所有資料庫相關函式
 from ..model.models import get_account_by_account, get_professors, get_professor_by_id, get_otherinfo, get_professor_by_account_id, get_appointmentslot, update_appointment_slots, update_notice, update_lab_rule, update_research_area, get_student_count, get_student_by_account_id, update_student_profile, update_professor_profile, get_account_by_account_id, update_appointment_status, get_appointments_by_student, get_appointments_by_professor, create_appointment, get_all_professors, get_all_students, delete_student, delete_professor, create_student_account, create_pro_account,  get_all_professor_names, create_mentorship_request, get_professor_id_by_name, get_student_mentorship_requests, get_student_id_by_account_id, get_professor_mentorship_requests, update_mentorship_request_status, get_professor_mentorship_history, check_student_mentorship_status, update_reservationOpen_status, check_existing_student, check_existing_account, check_existing_location
 from werkzeug.utils import secure_filename
 from datetime import datetime
+
+# 創建 Blueprint 實例
 main = Blueprint('main', __name__)
 
+# 設定上傳檔案相關常數
 UPLOAD_FOLDER = 'app/static/img'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 

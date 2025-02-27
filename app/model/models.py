@@ -1,4 +1,9 @@
-import mysql.connector
+"""
+MySQL 資料庫連接模組
+提供與 MySQL 資料庫的連接和操作功能
+"""
+
+import mysql.connector  # 導入 MySQL 連接器，用於與 MySQL 資料庫進行互動
 
 
 def get_db_connection():
@@ -1249,13 +1254,13 @@ def check_student_mentorship_status(student_id):
 
     返回：
     str: 指導邀請的狀態
-        - "pending": 有待回覆的邀請（status = 0）
-        - "accepted": 有已同意的邀請（status = 1）
+        - "pending": 有待回覆的邀請 (status = 0)
+        - "accepted": 有已同意的邀請 (status = 1)
         - None: 沒有待回覆或已同意的邀請
 
     說明：
-    - 只檢查最新的一筆記錄（使用 LIMIT 1）
-    - 只關注待回覆和已同意的狀態（status IN (0, 1)）
+    - 只檢查最新的一筆記錄（使用 LIMIT 1)
+    - 只關注待回覆和已同意的狀態 (status IN (0, 1))
     - 用於防止學生同時發送多個指導邀請
     """
     connection = get_db_connection()

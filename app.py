@@ -5,6 +5,7 @@
 
 from app import create_app
 
+
 # 創建 Flask 應用程式實例
 app = create_app()
 
