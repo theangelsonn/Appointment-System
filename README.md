@@ -99,10 +99,6 @@
 
 ![教授端預約審核頁](docs/images/appointment-review-teacher.png)
 
-### 6) 學生端預約紀錄頁
-
-![學生端預約紀錄頁](docs/images/appointment-history-student.png)
-
 ---
 
 ## 技術架構
