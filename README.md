@@ -192,22 +192,35 @@ python app.py
 ```text
 appointment_system_new/
 ├── app.py
+├── .gitignore
 ├── app/
 │   ├── __init__.py
 │   ├── controller/
 │   │   └── routes.py
 │   ├── model/
 │   │   └── models.py
+│   ├── static/
+│   │   ├── css/
+│   │   ├── img/
+│   │   ├── js/
+│   │   └── resumes/
 │   ├── templates/
 │   │   ├── login.html
 │   │   ├── student_dashboard.html
 │   │   ├── teacher_dashboard.html
-│   │   ├── appointment_*.html
-│   │   ├── mentorship_*.html
-│   │   └── account_*.html
-│   └── static/
+│   │   ├── secretary_dashboard.html
+│   │   ├── appointment_*.html  # appointment_create/pro/stu
+│   │   ├── mentorship_*.html   # mentorship_pro/stu/detail
+│   │   ├── account_*.html      # account_create/pro/stu
+│   │   ├── profile_*.html
+│   │   └── view_pro_detail.html
 ├── docs/
 │   └── images/
+│       ├── login-page.png
+│       ├── student-dashboard.png
+│       ├── professor-detail.png
+│       ├── appointment-create.png
+│       └── appointment-review-teacher.png
 └── README.md
 ```
 
