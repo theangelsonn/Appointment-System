@@ -3,20 +3,29 @@ MySQL 資料庫連接模組
 提供與 MySQL 資料庫的連接和操作功能
 """
 
+import os
 import mysql.connector  # 導入 MySQL 連接器，用於與 MySQL 資料庫進行互動
 
 
 def get_db_connection():
+    db_host = os.getenv('DB_HOST', 'localhost')
+    db_user = os.getenv('DB_USER', 'root')
+    db_password = os.getenv('DB_PASSWORD')
+    db_name = os.getenv('DB_NAME', 'appointment_system')
+
+    if not db_password:
+        raise ValueError("缺少 DB_PASSWORD 環境變數，請先設定資料庫密碼")
+
     # 建立與 MySQL 資料庫的連接
     connection = mysql.connector.connect(
         # 資料庫主機位置
-        host='localhost',
+        host=db_host,
         # 資料庫使用者名稱
-        user='root',
+        user=db_user,
         # 資料庫密碼
-        password='REDACTED_PASSWORD',
+        password=db_password,
         # 要連接的資料庫名稱
-        database='appointment_system'
+        database=db_name
     )
     # 返回資料庫連接物件
     return connection

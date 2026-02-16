@@ -1,1 +1,23 @@
+# macOS
 .DS_Store
+
+# Local AI tooling artifacts
+.specstory/
+.cursorindexingignore
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_dsa
+credentials.json
+service_account*.json
+
+# Python cache
+__pycache__/
+*.py[cod]
